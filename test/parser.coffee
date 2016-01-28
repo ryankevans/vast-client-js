@@ -43,7 +43,7 @@ describe 'VASTParser', ->
             @response.ads[0].errorURLTemplates.should.eql ["http://example.com/wrapper-error", "http://example.com/error"]
 
         it 'should have merged impression URLs', =>
-            @response.ads[0].impressionURLTemplates.should.eql ["http://example.com/wrapper-impression", "http://example.com/impression1", "http://example.com/impression2", "http://example.com/impression3"]
+            @response.ads[0].impressionURLTemplates.should.eql ["http://example.com/wrapper-impression", "http://127.0.0.1:8080/second/wrapper_impression", "http://example.com/impression1", "http://example.com/impression2", "http://example.com/impression3"]
 
         it 'should have two creatives', =>
             @response.ads[0].creatives.should.have.length 2
@@ -84,6 +84,9 @@ describe 'VASTParser', ->
             it 'should have 2 urls for clicktracking', =>
                 linear.videoClickTrackingURLTemplates.should.eql ['http://example.com/clicktracking', 'http://example.com/wrapper-clicktracking']
 
+            it 'should have 1 url for customclick', =>
+                linear.videoCustomClickURLTemplates.should.eql ['http://example.com/customclick']
+
             it 'should have 2 urls for progress-30 event VAST 3.0', =>
                 linear.trackingEvents['progress-30'].should.eql ['http://example.com/progress-30sec', 'http://example.com/wrapper-progress-30sec']
 
@@ -101,30 +104,66 @@ describe 'VASTParser', ->
             it 'should have companion type', =>
                 companions.type.should.equal "companion"
 
-            it 'should have 1 variation', =>
-                companions.variations.should.have.length 1
+            it 'should have 3 variations', =>
+                companions.variations.should.have.length 3
 
             #Companion
             describe '#Companion', ->
                 companion = null
 
-                before (done) =>
-                    companion = companions.variations[0]
-                    done()
+                describe 'as image/jpeg', ->
+                    before (done) =>
+                        companion = companions.variations[0]
+                        done()
 
-                it 'should have parsed size and type attributes', =>
-                    companion.width.should.equal '300'
-                    companion.height.should.equal '60'
-                    companion.type.should.equal 'image/jpeg'
+                    it 'should have parsed size and type attributes', =>
+                        companion.width.should.equal '300'
+                        companion.height.should.equal '60'
+                        companion.type.should.equal 'image/jpeg'
 
-                it 'should have 1 tracking event', =>
-                    companion.trackingEvents.should.have.keys 'creativeView'
+                    it 'should have 1 tracking event', =>
+                        companion.trackingEvents.should.have.keys 'creativeView'
 
-                it 'should have 1 url for creativeView event', =>
-                    companion.trackingEvents['creativeView'].should.eql ['http://example.com/creativeview']
+                    it 'should have 1 url for creativeView event', =>
+                        companion.trackingEvents['creativeView'].should.eql ['http://example.com/creativeview']
 
-                it 'should have 1 companion clickthrough url', =>
-                    companion.companionClickThroughURLTemplate.should.equal  'http://example.com/companion-clickthrough'
+                    it 'should have 1 companion clickthrough url', =>
+                        companion.companionClickThroughURLTemplate.should.equal  'http://example.com/companion-clickthrough'
+
+                describe 'as IFrameResource', ->
+                  before (done) =>
+                      companion = companions.variations[1]
+                      done()
+
+                  it 'should have parsed size and type attributes', =>
+                      companion.width.should.equal '300'
+                      companion.height.should.equal '60'
+                      companion.type.should.equal 0
+
+                  it 'does not have tracking events', =>
+                    companion.trackingEvents.should.be.empty
+
+                  it 'has the #iframeResource set', ->
+                    companion.iframeResource.should.equal 'http://www.example.com/example.php'
+
+                describe 'as text/html', ->
+                    before (done) =>
+                        companion = companions.variations[2]
+                        done()
+
+                    it 'should have parsed size and type attributes', =>
+                        companion.width.should.equal '300'
+                        companion.height.should.equal '60'
+                        companion.type.should.equal 'text/html'
+
+                    it 'should have 1 tracking event', =>
+                        companion.trackingEvents.should.be.empty
+
+                    it 'should have 1 companion clickthrough url', =>
+                        companion.companionClickThroughURLTemplate.should.equal  'http://www.example.com'
+
+                    it 'has #htmlResource available', ->
+                      companion.htmlResource.should.equal "<a href=\"http://www.example.com\" target=\"_blank\">Some call to action HTML!</a>"
 
         describe '#VAST', ->
             @response = null

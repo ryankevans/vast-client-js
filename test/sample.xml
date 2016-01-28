@@ -9,8 +9,6 @@
       <Impression><![CDATA[http://example.com/impression1]]></Impression>
       <Impression><![CDATA[http://example.com/impression2]]></Impression>
       <Impression><![CDATA[http://example.com/impression3]]></Impression>
-      <Impression><![CDATA[ImNotAnUrl]]></Impression>
-      <Impression><![CDATA[ ]]></Impression>
       <Creatives>
         <Creative id="video">
           <Linear>
@@ -28,6 +26,7 @@
             <VideoClicks>
               <ClickTracking><![CDATA[http://example.com/clicktracking]]></ClickTracking>
               <ClickThrough><![CDATA[http://example.com/clickthrough]]></ClickThrough>
+              <CustomClick><![CDATA[http://example.com/customclick]]></CustomClick>
             </VideoClicks>
             <MediaFiles>
               <MediaFile delivery="progressive" type="video/mp4" bitrate="849" width="512" height="288" scalable="true"><![CDATA[http://example.com/asset.mp4]]></MediaFile>
@@ -42,6 +41,24 @@
                 <Tracking event="creativeView"><![CDATA[http://example.com/creativeview]]></Tracking>
               </TrackingEvents>
               <CompanionClickThrough><![CDATA[http://example.com/companion-clickthrough]]></CompanionClickThrough>
+            </Companion>
+            <Companion width="300" height="60">
+              <IFrameResource>
+                <![CDATA[http://www.example.com/example.php]]>
+              </IFrameResource>
+              <CompanionClickThrough>
+                http://www.example.com
+              </CompanionClickThrough>
+            </Companion>
+            <Companion width="300" height="60">
+              <HTMLResource>
+                <![CDATA[
+                <a href="http://www.example.com" target="_blank">Some call to action HTML!</a>
+                ]]>
+              </HTMLResource>
+              <CompanionClickThrough>
+                http://www.example.com
+              </CompanionClickThrough>
             </Companion>
           </CompanionAds>
         </Creative>

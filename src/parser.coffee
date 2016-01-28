@@ -1,11 +1,11 @@
-URLHandler = require './urlhandler.coffee'
-VASTResponse = require './response.coffee'
-VASTAd = require './ad.coffee'
-VASTUtil = require './util.coffee'
-VASTCreativeLinear = require('./creative.coffee').VASTCreativeLinear
-VASTCreativeCompanion = require('./creative.coffee').VASTCreativeCompanion
-VASTMediaFile = require './mediafile.coffee'
-VASTCompanionAd = require './companionad.coffee'
+URLHandler = require './urlhandler'
+VASTResponse = require './response'
+VASTAd = require './ad'
+VASTUtil = require './util'
+VASTCreativeLinear = require('./creative').VASTCreativeLinear
+VASTCreativeCompanion = require('./creative').VASTCreativeCompanion
+VASTMediaFile = require './mediafile'
+VASTCompanionAd = require './companionad'
 EventEmitter = require('events').EventEmitter
 
 class VASTParser
@@ -39,7 +39,7 @@ class VASTParser
         @vent.once eventName, cb
 
     @_parse: (url, parentURLs, options, cb) ->
-
+        # Options param can be skipped
         if not cb
             cb = options if typeof options is 'function'
             options = {}
@@ -97,7 +97,10 @@ class VASTParser
                         complete()
                         return
 
-                    if ad.nextWrapperURL.indexOf('://') == -1
+                    if ad.nextWrapperURL.indexOf('//') == 0
+                      protocol = location.protocol
+                      ad.nextWrapperURL = "#{protocol}#{ad.nextWrapperURL}"
+                    else if ad.nextWrapperURL.indexOf('://') == -1
                         # Resolve relative URLs (mainly for unit testing)
                         baseURL = url.slice(0, url.lastIndexOf('/'))
                         ad.nextWrapperURL = "#{baseURL}/#{ad.nextWrapperURL}"
@@ -191,14 +194,14 @@ class VASTParser
     @parseInLineElement: (inLineElement) ->
         ad = new VASTAd()
         ad.id = inLineElement.id
-        
+
         for node in inLineElement.childNodes
             switch node.nodeName
                 when "Error"
-                    ad.errorURLTemplates.push (@parseNodeText node) if @isUrl node
+                    ad.errorURLTemplates.push (@parseNodeText node)
 
                 when "Impression"
-                    ad.impressionURLTemplates.push (@parseNodeText node) if @isUrl node
+                    ad.impressionURLTemplates.push (@parseNodeText node)
 
                 when "Creatives"
                     for creativeElement in @childsByName(node, "Creative")
@@ -237,6 +240,8 @@ class VASTParser
             creative.videoClickThroughURLTemplate = @parseNodeText(@childByName(videoClicksElement, "ClickThrough"))
             for clickTrackingElement in @childsByName(videoClicksElement, "ClickTracking")
                 creative.videoClickTrackingURLTemplates.push @parseNodeText(clickTrackingElement)
+            for customClickElement in @childsByName(videoClicksElement, "CustomClick")
+                creative.videoCustomClickURLTemplates.push @parseNodeText(customClickElement)
 
         adParamsElement = @childByName(creativeElement, "AdParameters")
         if adParamsElement?
@@ -299,7 +304,7 @@ class VASTParser
             companionAd.width = companionResource.getAttribute("width")
             companionAd.height = companionResource.getAttribute("height")
             for htmlElement in @childsByName(companionResource, "HTMLResource")
-                companionAd.type = htmlElement.getAttribute("creativeType") or 0
+                companionAd.type = htmlElement.getAttribute("creativeType") or 'text/html'
                 companionAd.htmlResource = @parseNodeText(htmlElement)
             for iframeElement in @childsByName(companionResource, "IFrameResource")
                 companionAd.type = iframeElement.getAttribute("creativeType") or 0
@@ -342,9 +347,4 @@ class VASTParser
     @parseNodeText: (node) ->
         return node and (node.textContent or node.text or '').trim()
 
-    # Validate url
-    @isUrl: (node) ->
-        /[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?//=]*)/i.test (@parseNodeText node)
-
 module.exports = VASTParser
-

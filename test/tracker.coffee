@@ -192,7 +192,7 @@ describe 'VASTTracker', ->
                 @Tracker.impressed.should.eql yes
 
             it 'should have called impression urls', =>
-                _eventsSent[0].should.eql ['http://example.com/wrapper-impression', 'http://example.com/impression1', 'http://example.com/impression2', 'http://example.com/impression3']
+                _eventsSent[0].should.eql ['http://example.com/wrapper-impression', 'http://127.0.0.1:8080/second/wrapper_impression', 'http://example.com/impression1', 'http://example.com/impression2', 'http://example.com/impression3']
 
             it 'should have sent creativeView event', =>
                 _eventsSent[1].should.eql 'creativeView'
@@ -232,11 +232,11 @@ describe 'VASTTracker', ->
                 _eventsSent.should.eql ['complete', ["http://example.com/complete", "http://example.com/wrapper-complete"]]
 
 
-        describe '#stop', =>
+        describe '#close', =>
 
             before (done) =>
                 _eventsSent = []
-                @Tracker.stop()
+                @Tracker.close()
                 done()
 
             it 'should have sent close event and urls VAST 2.0', =>
@@ -246,7 +246,7 @@ describe 'VASTTracker', ->
                 _eventsSent = []
                 @Tracker.trackingEvents['closeLinear'] = ['http://example.com/closelinear']
                 delete @Tracker.trackingEvents['close']
-                @Tracker.stop()
+                @Tracker.close()
                 _eventsSent.should.eql ['closeLinear', [ 'http://example.com/closelinear']]
 
 
